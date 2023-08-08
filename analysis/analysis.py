@@ -1,10 +1,16 @@
+# https://en.wikipedia.org/wiki/Trilateration
 # https://electronics.stackexchange.com/questions/83354/calculate-distance-from-rssi
 # https://stackoverflow.com/questions/4357799/convert-rssi-to-distance
 # https://iotandelectronics.wordpress.com/2016/10/07/how-to-calculate-distance-from-the-rssi-value-of-the-ble-beacon/
+# https://math.stackexchange.com/a/1033561/396153
+# http://ambrnet.com/TrigoCalc/Circles2/circle2intersection/CircleCircleIntersection.htm
 
 #%%
 import math
 
+import numpy as np
+from numpy import sqrt, dot, cross
+from numpy.linalg import norm
 import pandas as pd
 import plotly.express as px
 
@@ -73,23 +79,56 @@ finals.to_csv('test-00.csv', index=False)
 # px.bar(finals, 'edge', 'dist', error_y='err')
 px.bar(finals, 'edge', 'dist')
 #%% 1d
-locs = {u:[] for u in uids}
+locs = {}
 
-origin = uids[0]
-locs[origin] = [{'x': 0}]
+a, b, c = uids[3], uids[1], uids[2]
+print('Using points as base plane:', a, b, c)
+# assume first point at origin
+locs[a] = np.array([0, 0, 0])
+# assume second point in positive x direction
+a_to_b = finals[finals['edge'] == '-'.join(sorted([a, b]))]['dist'].iloc[0]
+locs[b] = np.array([a_to_b, 0, 0])
+# assume third point in positive y direction
+a_to_c = finals[finals['edge'] == '-'.join(sorted([a, c]))]['dist'].iloc[0]
+b_to_c = finals[finals['edge'] == '-'.join(sorted([b, c]))]['dist'].iloc[0]
+c_x = (a_to_c ** 2 - b_to_c ** 2 + a_to_b ** 2) / (2 * a_to_b)
+c_y = math.sqrt(a_to_c ** 2 - c_x ** 2)
+locs[c] = np.array([c_x, c_y, 0])
 
-edges = dict(zip(
-    finals[finals['a'] == origin]['b'].to_list(),
-    finals[finals['a'] == origin]['dist'].to_list()
-))
-edges.update(dict(zip(
-    finals[finals['b'] == origin]['a'].to_list(),
-    finals[finals['b'] == origin]['dist'].to_list()
-)))
-for edge, dist in edges.items():
-    locs[edge].append({'x': dist})
-    locs[edge].append({'x': -dist})
+# find remaining points
 
-finals[finals['b'] == origin]
+# https://stackoverflow.com/a/18654302/8305404
+# Find the intersection of three spheres
+# P1,P2,P3 are the centers, r1,r2,r3 are the radii
+# Implementaton based on Wikipedia Trilateration article.
+def trilaterate(P1,P2,P3,r1,r2,r3):
+    temp1 = P2-P1
+    e_x = temp1/norm(temp1)
+    temp2 = P3-P1
+    i = dot(e_x,temp2)
+    temp3 = temp2 - i*e_x
+    e_y = temp3/norm(temp3)
+    e_z = cross(e_x,e_y)
+    d = norm(P2-P1)
+    j = dot(e_y,temp2)
+    x = (r1*r1 - r2*r2 + d*d) / (2*d)
+    y = (r1*r1 - r3*r3 -2*i*x + i*i + j*j) / (2*j)
+    temp4 = r1*r1 - x*x - y*y
+    if temp4<0:
+        raise Exception("The three spheres do not intersect!")
+    z = sqrt(temp4)
+    p_12_a = P1 + x*e_x + y*e_y + z*e_z
+    p_12_b = P1 + x*e_x + y*e_y - z*e_z
+    return p_12_a, p_12_b
 
+for p in uids:
+    if p in locs: continue
+    print('finding point', p)
+    a_to_p = finals[finals['edge'] == '-'.join(sorted([a, p]))]['dist'].iloc[0]
+    b_to_p = finals[finals['edge'] == '-'.join(sorted([b, p]))]['dist'].iloc[0]
+    c_to_p = finals[finals['edge'] == '-'.join(sorted([c, p]))]['dist'].iloc[0]
+    opt1, opt2 = trilaterate(locs[a], locs[b], locs[c], a_to_p, b_to_p, c_to_p)
+    locs[p] = opt1
+
+locs
 #%%
