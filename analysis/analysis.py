@@ -14,7 +14,7 @@ from numpy.linalg import norm
 import pandas as pd
 import plotly.express as px
 
-data_file = "../server/data.csv"
+data_file = "../server/data-2023-08-06-wifi-1.csv"
 
 df = pd.read_csv(data_file, encoding='utf-8')
 

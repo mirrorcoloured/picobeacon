@@ -1,9 +1,13 @@
 import time
 import json
+import datetime
 
 from flask import Flask, request
 
 app = Flask(__name__)
+
+today = datetime.date.today().isoformat()
+experiment = 'wifi-1'
 
 @app.route('/', methods=['GET'])
 def home():
@@ -19,11 +23,11 @@ def log_data():
     print('Device', data['mac'])
     # print('!!! DATA', data)
 
-    with open('data.txt', 'a') as file:
-        file.write(str(data) + '\n')
+    # with open('data.txt', 'a') as file:
+    #     file.write(str(data) + '\n')
 
     headers = ['stime', 'ctime', 'mac', 'ssid', 'bssid', 'rssi']
-    with open('data.csv', 'a') as file:
+    with open(f'data-{today}-{experiment}.csv', 'a') as file:
         for network in data['networks']:
             # print('!!! NETWORK', network)
             if network['ssid'][:7] in ['beacon-', 'Firelin']:
