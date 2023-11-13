@@ -1,1 +1,1 @@
-import beacon
+import beacon_ble
