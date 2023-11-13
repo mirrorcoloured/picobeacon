@@ -12,7 +12,6 @@ import json
 from beacon_bits import get_uid, connect_to_known_network, ble_scan, get_broadcast_function
 
 my_uid = get_uid()
-print("My UID", my_uid)
 
 print("Enabling WLAN")
 wlan = network.WLAN(network.STA_IF)
@@ -60,8 +59,8 @@ async def report_devices():
                     'rssi': device.rssi,
                     'services': [str(s) for s in device.services()],
                     'manufacturer': [str(m) for m in device.manufacturer()],
-                    # 'resp_data': device.resp_data,
-                    # 'adv_data': device.adv_data,
+                    'resp_data': str(device.resp_data),
+                    'adv_data': str(device.adv_data),
                     })
             
             data = {

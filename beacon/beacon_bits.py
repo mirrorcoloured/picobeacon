@@ -10,6 +10,15 @@ onboard_led = machine.Pin("LED", machine.Pin.OUT)
 def get_uid():
     return ubinascii.hexlify(machine.unique_id(),":").decode()
 
+def get_wifi_mac(wlan=None):
+    if wlan:
+        return ubinascii.hexlify(wlan.config('mac'), ':').decode()
+    else:
+        return ubinascii.hexlify(network.WLAN().config('mac'), ':').decode()
+
+def get_ble_mac():
+    return ubinascii.hexlify(aioble.config("mac")[1], ':').decode()
+
 def connect_to_known_network(wlan):
     # connect to local network for logging
     NETWORK_FILE = 'nets.json'
