@@ -1,46 +1,78 @@
 import time
 import json
 import datetime
+import os
 
 from flask import Flask, request
 
 app = Flask(__name__)
 
 today = datetime.date.today().isoformat()
-experiment = 'wifi-1'
+experiment = 'ble-1'
 
 @app.route('/', methods=['GET'])
 def home():
     print("Got home request")
     return "Hi I am server", 200
 
+def flatten_obj(obj:any, delimiter:str="-", md:dict={}, path:list=[]) -> dict[str, any]:
+    """Turns a nested dict into a flat dict by concatenating traversal keys"""
+    if type(obj) == dict:
+        for k, v in obj.items():
+            flatten_obj(v, delimiter, md, path + [str(k)])
+    elif type(obj) == list:
+        for i, o in enumerate(obj):
+            flatten_obj(o, delimiter, md, path + [str(i)])
+    else:
+        md[delimiter.join(path)] = obj
+    return md
+
+def wifi_beacon_to_lines(data):
+    # yield json.dumps(data)
+    for network in data['networks']:
+        if network['ssid'][:7] in ['beacon-', 'Firelin']:
+            data_row = ",".join([
+                str(time.time()),
+                str(data['time']),
+                str(data['uid']),
+                str(network['ssid']),
+                str(network['bssid']),
+                str(network['rssi']),
+                ])
+            yield(data_row)
+
+def ble_beacon_to_lines(data):
+    # yield json.dumps(data)
+    for network in data['networks']:
+        data_row = ",".join([
+            str(time.time()),
+            str(data['time']),
+            str(data['uid']),
+            str(network['name']),
+            str(network['device']),
+            str(network['rssi']),
+            str(network['services']),
+            ])
+        yield(data_row)
+
 sleep_request = 10
 
 @app.route('/log_data', methods=['POST'])
 def log_data():
-    # print("Got data input")
     data = json.loads(request.data.decode())
-    print('Device', data['mac'])
-    # print('!!! DATA', data)
+    print('Message from device', data['uid'])
 
-    # with open('data.txt', 'a') as file:
-    #     file.write(str(data) + '\n')
+    filename = f'data-{today}-{experiment}.csv'
+    # headers = ['stime', 'ctime', 'uid', 'ssid', 'bssid', 'rssi']
+    headers = ['stime', 'ctime', 'uid', 'name', 'device', 'rssi', 'services']
 
-    headers = ['stime', 'ctime', 'mac', 'ssid', 'bssid', 'rssi']
-    with open(f'data-{today}-{experiment}.csv', 'a') as file:
-        for network in data['networks']:
-            # print('!!! NETWORK', network)
-            if network['ssid'][:7] in ['beacon-', 'Firelin']:
-                data_row = ",".join([
-                    str(time.time()),
-                    str(data['time']),
-                    str(data['mac']),
-                    str(network['ssid']),
-                    str(network['bssid']),
-                    str(network['rssi']),
-                    ])
-                # print('data row', data_row)
-                file.write(data_row + "\n")
+    if not os.path.exists(filename):
+        with open(filename, 'w') as file:
+            file.write(",".join(headers) + "\n")
+    with open(filename, 'a') as file:
+        # for line in wifi_beacon_to_lines(data):
+        for line in ble_beacon_to_lines(data):
+            file.write(line + "\n")
 
     return {
         "sleep_request": sleep_request
