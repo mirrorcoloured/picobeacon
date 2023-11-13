@@ -57,7 +57,7 @@ netsummary_flat = netsummary.reset_index()
 netsummary_flat.columns = netsummary_flat.columns.map("|".join).str.strip("|")
 netsummary_flat
 
-#%%
+#%% pairing mean + err
 px.scatter_3d(
     netsummary_flat,
     x='src',
@@ -70,6 +70,19 @@ px.scatter_3d(
         'dst': uids,
     }
 ).update_traces(error_z_color="black")
+
+#%% pairings over time
+px.scatter_3d(
+    net,
+    x='src',
+    y='dst',
+    z='dist',
+    color='time',
+    category_orders={
+        'src': uids,
+        'dst': uids,
+    }
+)
 
 #%%
 finals = []
