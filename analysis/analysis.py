@@ -41,24 +41,18 @@ netsummary = net.groupby(['src', 'dst']).aggregate({'dist': ['mean', 'std']})
 netsummary_flat = netsummary.reset_index()
 netsummary_flat.columns = netsummary_flat.columns.map("|".join).str.strip("|")
 
-# px.scatter_3d(
-#     net,
-# #   netsummary,
-#     x='src',
-#     y='dst',
-#     z='dist',
-
-#     color='time',
-
-# #   z='dist|mean',
-# #   error_z='dist|std',
-# #   color='src',
-
-#     category_orders={
-#     'src': uids,
-#     'dst': uids,
-#     }
-# )
+px.scatter_3d(
+    netsummary_flat,
+    x='src',
+    y='dst',
+    z='dist|mean',
+    error_z='dist|std',
+    color='dist|mean',
+    category_orders={
+        'src': uids,
+        'dst': uids,
+    }
+).update_traces(error_z_color="black")
 
 finals = []
 for i in range(len(uids)):
@@ -74,7 +68,7 @@ for i in range(len(uids)):
         })
 
 finals = pd.DataFrame(finals)
-finals.to_csv('test-00.csv', index=False)
+finals.to_csv('wifi-1.csv', index=False)
 
 # px.bar(finals, 'edge', 'dist', error_y='err')
 px.bar(finals, 'edge', 'dist')
