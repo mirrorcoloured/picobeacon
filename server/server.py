@@ -8,7 +8,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 today = datetime.date.today().isoformat()
-experiment = 'ble-1'
+experiment = 'ble-2'
 
 @app.route('/', methods=['GET'])
 def home():
@@ -52,6 +52,9 @@ def ble_beacon_to_lines(data):
             str(network['device']),
             str(network['rssi']),
             str(network['services']),
+            str(network['manufacturer']),
+            str(network['resp_data']),
+            str(network['adv_data']),
             ])
         yield(data_row)
 
@@ -64,7 +67,7 @@ def log_data():
 
     filename = f'data-{today}-{experiment}.csv'
     # headers = ['stime', 'ctime', 'uid', 'ssid', 'bssid', 'rssi']
-    headers = ['stime', 'ctime', 'uid', 'name', 'device', 'rssi', 'services']
+    headers = ['stime', 'ctime', 'uid', 'name', 'device', 'rssi', 'services', 'manufacturer', 'resp_data', 'adv_data']
 
     if not os.path.exists(filename):
         with open(filename, 'w') as file:
