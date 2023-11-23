@@ -42,15 +42,9 @@ def get_link(source, target, prefix=""):
 
 
 # Add columns
-df[f"{src_column}_{dst_column}"] = (df[src_column] + "_" + df[dst_column]).str.replace(
-    ":", ""
-)
-df[f"{dst_column}_{src_column}"] = (df[dst_column] + "_" + df[src_column]).str.replace(
-    ":", ""
-)
-df["link"] = df.apply(
-    lambda df: get_link(df[src_column], df[dst_column], prefix), axis=1
-)
+df[f"{src_column}_{dst_column}"] = (df[src_column] + "_" + df[dst_column]).str.replace(":", "")
+df[f"{dst_column}_{src_column}"] = (df[dst_column] + "_" + df[src_column]).str.replace(":", "")
+df["link"] = df.apply(lambda df: get_link(df[src_column], df[dst_column], prefix), axis=1)
 df.head(2)
 
 # Explore
@@ -99,9 +93,7 @@ dist_df["source"] = dist_df["link"].apply(lambda s: s.split("_")[0])
 dist_df["target"] = dist_df["link"].apply(lambda s: s.split("_")[1])
 dist_df
 
-pos_dict = {
-    node: {"x": 0, "y": 0, "z": 0} for node in {*dist_df["source"], *dist_df["target"]}
-}
+pos_dict = {node: {"x": 0, "y": 0, "z": 0} for node in {*dist_df["source"], *dist_df["target"]}}
 
 dist_df = dist_df.set_index(["source", "target"])
 
