@@ -1,16 +1,17 @@
 # %% import packages and data
 import copy
-from pprint import pprint
 import os
 from itertools import product
+from pprint import pprint
+
+import networkx as nx
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 # from functools import reduce
 
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-import networkx as nx
 
 datasets = [f for f in os.listdir("../server/") if os.path.splitext(f)[1] == ".csv"]
 print(datasets)
@@ -53,7 +54,9 @@ def get_link(source, target, prefix=""):
 # Add columns
 df[ab_column] = (df[src_column] + "_" + df[dst_column]).str.replace(":", "")
 df[ba_column] = (df[dst_column] + "_" + df[src_column]).str.replace(":", "")
-df["link"] = df.apply(lambda df: get_link(df[src_column], df[dst_column], prefix), axis=1)
+df["link"] = df.apply(
+    lambda df: get_link(df[src_column], df[dst_column], prefix), axis=1
+)
 df.head(2)
 
 # Explore
@@ -201,7 +204,9 @@ while i < max_iterations:
     cost_history.append(best_cost)
     if i % 10 == 0:
         # print(best_cost)
-        px.line(y=cost_history).update_layout(xaxis_title="iterations", yaxis_title="cost").show()
+        px.line(y=cost_history).update_layout(
+            xaxis_title="iterations", yaxis_title="cost"
+        ).show()
     if best_cost > last_cost:
         break
     pos_dict = best_option["pos_dict"]
