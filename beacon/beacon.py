@@ -7,6 +7,7 @@ import network
 import ubinascii
 import urequests
 from beacon_bits import connect_to_known_network, get_uid, make_ap, scan_networks
+from serverinfo import server_url
 
 uid = get_uid()
 print("My UID", uid)
@@ -25,8 +26,6 @@ ap = make_ap(ssid, password)
 
 
 def report_networks(wlan):
-    server_url = "http://192.168.1.52:5000/log_data"
-
     networks = scan_networks(wlan)
 
     data = {

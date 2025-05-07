@@ -15,6 +15,7 @@ from beacon_bits import (
     get_uid,
 )
 from micropython import const
+from serverinfo import server_url
 
 my_uid = get_uid()
 
@@ -41,7 +42,6 @@ ble_broadcast = get_broadcast_function(
 
 
 async def report_devices():
-    server_url = "http://192.168.1.52:5000/log_data"
     sleep_time_ms = 10 * 1000
 
     while True:
