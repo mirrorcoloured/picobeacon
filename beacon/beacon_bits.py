@@ -24,6 +24,15 @@ def get_ble_mac():
     return ubinascii.hexlify(aioble.config("mac")[1], ":").decode()
 
 
+def get_ip(wlan):
+    return wlan.ifconfig()[0]
+
+
+def print_file_contents(filepath):
+    with open(filepath, "r") as f:
+        print(f.read())
+
+
 def connect_to_known_network(wlan):
     # connect to local network for logging
     NETWORK_FILE = "nets.json"

@@ -6,10 +6,17 @@ import machine
 import network
 import ubinascii
 import urequests
-from beacon_bits import connect_to_known_network, get_uid, make_ap, scan_networks
+from beacon_bits import (
+    connect_to_known_network,
+    get_uid,
+    get_wifi_mac,
+    make_ap,
+    scan_networks,
+)
 from serverinfo import server_url
 
 uid = get_uid()
+mywifimac = get_wifi_mac()
 print("My UID", uid)
 
 print("Enabling WLAN")
@@ -20,7 +27,7 @@ print("Connecting to home network")
 connect_to_known_network(wlan)
 
 print("Enabling access point")
-ssid = "beacon-{}".format(uid)
+ssid = "beacon-{}".format(mywifimac)
 password = "".join([chr(random.randint(97, 122)) for i in range(16)])
 ap = make_ap(ssid, password)
 
@@ -31,9 +38,12 @@ def report_networks(wlan):
     data = {
         "time": time.time(),
         "uid": uid,
+        "mywifimac": mywifimac,
         "networks": networks,
     }
-    response = urequests.post(server_url, data=json.dumps(data).encode())
+    response = urequests.post(
+        f"{server_url}/log_data_wifi", data=json.dumps(data).encode()
+    )
     response_json = json.loads(response.content.decode())
 
     global sleep_time

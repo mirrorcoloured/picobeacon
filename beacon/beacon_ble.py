@@ -11,6 +11,7 @@ import urequests
 from beacon_bits import (
     ble_scan,
     connect_to_known_network,
+    get_ble_mac,
     get_broadcast_function,
     get_uid,
 )
@@ -18,6 +19,7 @@ from micropython import const
 from serverinfo import server_url
 
 my_uid = get_uid()
+my_ble_mac = get_ble_mac()
 
 print("Enabling WLAN")
 wlan = network.WLAN(network.STA_IF)
@@ -74,9 +76,12 @@ async def report_devices():
             data = {
                 "time": time.time(),
                 "uid": my_uid,
+                "myblemac": my_ble_mac,
                 "networks": send_data,
             }
-            response = urequests.post(server_url, data=json.dumps(data).encode())
+            response = urequests.post(
+                f"{server_url}/log_data_ble", data=json.dumps(data).encode()
+            )
             response_json = json.loads(response.content.decode())
             sleep_time = response_json.get("sleep_request", sleep_time_ms / 1000)
             sleep_time_ms = sleep_time * 1000

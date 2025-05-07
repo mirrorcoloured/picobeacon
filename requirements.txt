@@ -1,0 +1,11 @@
+# server
+flask
+fastapi
+uvicorn
+
+# analysis
+pandas
+numpy
+plotly
+networkx
+ipykernel

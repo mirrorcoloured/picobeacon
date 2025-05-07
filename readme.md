@@ -22,6 +22,45 @@
 4. Upload `serverinfo.py` and `main.py` to the pico via webrepl or via usb if still connected
 
 
+# Tips
+
+- Using WebREPL, check file contents in-place with:
+```python
+from beacon_bits import print_file_contents                                                                                                       
+print_file_contents("main.py")
+```
+
+# Data
+
+## WIFI
+Core data from beacon
+**stime** - server `time.time()`
+**ctime** - pico `time.time()`
+**uid** - pico uid
+**mac** - pico wifi mac address
+Properties associated with each device detected from this beacon
+**ssid** - ssid of detected device
+**bssid** - bssid of detected device
+**channel** - channel of detected device network
+**rssi** - signal strength of detected device network
+**authmode** - [0: open, 1: WEP, 2: WPA-PSK, 3: WPA2-PSK, 4: WPA/WPA2-PSK]
+**hidden** - [0: visible, 1: hidden]
+
+## BLE
+Core data from beacon
+**stime** - server `time.time()`
+**ctime** - pico `time.time()`
+**uid** - pico uid
+**mac** - pico ble mac address
+Properties associated with each device detected from this beacon
+**name** - detected device name (`device.name()`)
+**device** - detected device address (`device.device.addr_hex()`)
+**rssi** - strength of signal to device(`device.rssi`)
+**services** - list of services (`device.services()`)
+**manufacturer** - list of manufacturers (`device.manufacturer()`)
+**resp_data** - extra data from detected device (`device.resp_data`)
+**adv_data** - extra data from detected device (`device.adv_data`)
+
 # How to do
 https://iotandelectronics.wordpress.com/2016/10/07/how-to-calculate-distance-from-the-rssi-value-of-the-ble-beacon/
 

@@ -7,8 +7,8 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-today = datetime.date.today().isoformat()
-experiment = "ble-2"
+now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+experiment_name = ""
 
 
 @app.route("/", methods=["GET"])
@@ -35,18 +35,21 @@ def flatten_obj(
 def wifi_beacon_to_lines(data):
     # yield json.dumps(data)
     for network in data["networks"]:
-        if network["ssid"][:7] in ["beacon-", "Firelin"]:
-            data_row = ",".join(
-                [
-                    str(time.time()),
-                    str(data["time"]),
-                    str(data["uid"]),
-                    str(network["ssid"]),
-                    str(network["bssid"]),
-                    str(network["rssi"]),
-                ]
-            )
-            yield (data_row)
+        data_row = ",".join(
+            [
+                str(time.time()),
+                str(data["time"]),
+                str(data["uid"]),
+                str(data["mywifimac"]),
+                str(network["ssid"]),
+                str(network["bssid"]),
+                str(network["rssi"]),
+                str(network["channel"]),
+                str(network["authmode"]),
+                str(network["hidden"]),
+            ]
+        )
+        yield (data_row)
 
 
 def ble_beacon_to_lines(data):
@@ -57,6 +60,7 @@ def ble_beacon_to_lines(data):
                 str(time.time()),
                 str(data["time"]),
                 str(data["uid"]),
+                str(data["myblemac"]),
                 str(network["name"]),
                 str(network["device"]),
                 str(network["rssi"]),
@@ -72,17 +76,46 @@ def ble_beacon_to_lines(data):
 sleep_request = 10
 
 
-@app.route("/log_data", methods=["POST"])
-def log_data():
+@app.route("/log_data_wifi", methods=["POST"])
+def log_data_wifi():
     data = json.loads(request.data.decode())
     print("Message from device", data["uid"])
 
-    filename = f"data-{today}-{experiment}.csv"
-    # headers = ['stime', 'ctime', 'uid', 'ssid', 'bssid', 'rssi']
+    filename = f"data-{now}-wifi-{experiment_name}.csv"
     headers = [
         "stime",
         "ctime",
         "uid",
+        "mac",
+        "ssid",
+        "bssid",
+        "rssi",
+        "channel",
+        "authmode",
+        "hidden",
+    ]
+
+    if not os.path.exists(filename):
+        with open(filename, "w") as file:
+            file.write(",".join(headers) + "\n")
+    with open(filename, "a") as file:
+        for line in wifi_beacon_to_lines(data):
+            file.write(line + "\n")
+
+    return {"sleep_request": sleep_request}, 200
+
+
+@app.route("/log_data_ble", methods=["POST"])
+def log_data_ble():
+    data = json.loads(request.data.decode())
+    print("Message from device", data["uid"])
+
+    filename = f"data-{now}-ble-{experiment_name}.csv"
+    headers = [
+        "stime",
+        "ctime",
+        "uid",
+        "mac",
         "name",
         "device",
         "rssi",
@@ -96,7 +129,6 @@ def log_data():
         with open(filename, "w") as file:
             file.write(",".join(headers) + "\n")
     with open(filename, "a") as file:
-        # for line in wifi_beacon_to_lines(data):
         for line in ble_beacon_to_lines(data):
             file.write(line + "\n")
 
